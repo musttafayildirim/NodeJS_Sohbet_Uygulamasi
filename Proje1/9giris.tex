@@ -1,0 +1,522 @@
+\section{GÝRÝÞ}
+\subsection{Projenin Genel Hatlarýyla Anlatýmý}
+	Bu alanda projeyi özet olarak tekrardan anlatmak istiyorum. Ýlk olarak projeyi anlatayým. Aslýnda bakýldýðý zaman tamamiyle bir mesajlaþma uygulamasýdýr ama neden böyle bir uygulama yazdým. Kullandýðým teknolojiler neler bunlar hakkýnda biraz bilgi vereyim. Yazdýðým projede socket.io ile gelen mesajlarý, oda ekleme iþlemi ve aktif olan kullanýcýlarý anýnda görmemize imkan saðlamaktadýr. Peki nedir bu Socket.Io ve neden Ajax kullanmadým da Socket.Io kullandým. Durumu þöyle anlatabiliceðimi umuyorum. Eðer iletiþimimiz tek bir yönde ise örneðin müþteri her zaman sunucuyla iletiþimi baþlatan kiþiyse AJAX'ý kullanmak daha verimli olacaktýr. Çünkü daha hýzlý uygulayabiliriz ama burada sunucu ile müþteri arasýnda her iki yönde akýcý bir þekilde iletiþim kurmamýz gerektiði için Socket.Io seçimi bizim için en doðru seçim olacaktýr ki Socket.Io'nun bir baþka büyük avantajý, tüm müþterilerle belirli bir anda çevrimiçi olarak iletiþim kurabilmemiz. Ýkisi arasýnda karþýlaþtýrma yaptýðýmýzda ve yapacaðýmýz iþin mesajlaþma olduðunu düþünürsek en mantýklý tercihin Socket.Io olduðu oldukça aþikardýr.
+	Tamam Socket.Io'yu kullandýk projeyi geliþtiriyoruz peki bundan sonrasý nasýl olacak burada yapmamýz gereken iki olay var verilerin kaydedilmesi ve Socket.Io ile tuttuðumuz verilerin frond-end de gösterilmesi. Önce frond-end de gösterilmesi üzerine duralým. Burada bize client baðlantýsý olan ve frond-end için kullanabileceðimiz frameworklerden birini seçersek iþlerimiz bir hayli kolay olacak ve iþleri o kadar hýzlý ilerleteceðiz ben bunun için Angular'ý tercih ettim Vue.Js, React veya diðerleri de seçilebilirdi. Benim Angular'ý seçmemin nedenleri arasýnda frameworkler arasýnda en olgun olaný olmasý, katkýda bulunanlar açýsýndan iyi bir desteðinin olmasý ve en önemlisi eksiksiz bir paket oluþudur. Þimdi frond-end yapýlandýrmamýzý da hallettiðimize göre uygulamamýzýn veri tabaný için kullandýðým iki veri tabanýný anlatmaya baþlayým. Bu veri tabanlarýndan birisi sadece kullanýcýlarýmýn Google Id gibi giriþ bilgilerini tutmaktadýr. Bu NoSQL olan MongoDB ile yapýlmaktadýr. Bunun haricinde tüm mesajlarýn tutulduðu, online olan kullanýcýlarýn tutulduðu, kullanýcýlarýn session bilgileirinin tutulduðu ve son olarak eklenen odalarýn tutulduðu Redis'dir..
+	Bu yapýlarýn hepsi ve kullandýðým paketler ileride ayrýntýlý bir biçimde anlatýlacaktýr.
+	Yani sonuç olarak burada yaptýðýmýz iþ ön tarafta Framework olarak Angular kullanarak, html yerine pug tercihi yaptým sayfalarý yazarken bununda birkaç nedeni vardýr ileride anlatacaðým arka tarafta Node.js'in paketi olan Socket.Io ile iþlemleri yürüttüm ve redis ile verilerimi tutarak bir mesajlaþma uygulamasý yaptým.
+	\subsection{Neden bu projeyi seçtim}
+	Bu projeyi seçmemin en büyük etkeni proje hocamdýr. Bana daha önce yaptýðým projeden farklý bir proje olmasý ve CV'ne yazacaðýn farklý þeyler olsun diye birkaç kere tavsiye verdiðinden dolayý ve php ile node.js alanýndaki iþlerin ülkemizde çok yakýn dýþ ülkelerde ise node.js'in önde olmasýnýndan ötürü böyle bir proje yapmayý tercih ettim neticede bu projedeki temel amacým Node.Js öðrenmek ve CV'me yazýlabilecek birkaç satýr eklemekti.
+	\subsection{Bu proje ile hedeflenen ve faydalarý}
+	Bu proje ile Socket.Io ile gelen verilerin anlýk olarak iþlenmesi ve Redis'e kaydedilmesi hedeflenmiþtir. Bunlarda Socket.Io mesajlaþma uygulamalarý için biçilmiþ kaftandýr oldukça hýzlý bir þekilde kullanýcýlarýn haberleþmelerini saðlamaktadýr. Diðer taraftan Redis en basit haliyle, key-value þeklinde tasarlanmýþ bir NoSQL veritabanýdýr ve çok hýzlýdýr bunun nedenide Memcached gibi verileri HDD yazmadan RAM üzerinde tuttuðundandýr. Bu ikiliyi birleþtirdiðimizde ise bize oldukça hýzlý bir mesajlaþma platformu hazýrlanmýþ oluyor.
+	\subsection{Kullanýlan Bileþenler}
+	Bu alanda kullanýlan bileþenler kýsa bir þekilde anlatýlacak olup daha ayrýntýlý bilgi için bir sonraki bölüme bakmanýz proje sorumlusu tarafýndan önerilmektedir.
+	Baþladýðýmýzdan beri hep node.js den bahsetmekteyiz peki biz bu node.js'i hangi dille yazýyoruz þimdi herþeyi bir sýrayla teker teker ele alalým.
+	\subsubsection{JavaScript}
+	JavaScript, yaygýn olarak web tarayýcýlarýnda kullanýlmakta olan bir betik dilidir. JavaScript ile yazýlan istemci tarafý betikler sayesinde tarayýcýnýn kullanýcýyla etkileþimde bulunmasý, tarayýcýnýn kontrol edilmesi, asenkron bir þekilde sunucu ile iletiþime geçilmesi ve web sayfasý içeriðinin deðiþtirilmesi gibi iþlevler saðlanýr. JavaScript, Node.js gibi platformlar sayesinde sunucu tarafýnda da yaygýn olarak kullanýlmaktadýr.
+
+Ýlk olarak bir Netscape çalýþaný olan Brendan Eich tarafýndan geliþtirilen ve 1997 yýlýndan beri bir ECMA standardý olan JavaScript, günümüzde Mozilla Vakfý öncülüðünde özgür yazýlým topluluðu tarafýndan geliþtirilmekte ve bakýmý yapýlmaktadýr.
+Web sayfalarýnýn görünümünün mükemmelleþtirilmesi, iþlevselliðinin artýrýlmasý ve dinamik web sayfalarý tasarlanmasý amacýyla JavaScript, HTML kodu içinde gömülü olarak (embedded) kullanýlabilir. JavaScript, bir programlama dili disiplini ve özelliklerine sahiptir.
+	\subsubsection{Node.JS}
+	Node.js, JavaScript'dir. Web tarayýcýlarýna muhtaç kalmadan heryerde çalýþabilir. Peki ne iþe yarar bir yazýlýmýn hem arkayüz (back-end) hem önyüz (front-end) kodlarýný ayný dilde yazmanýn tek yoludur. Günümüzde çoðu uygulama, zamanýnýn çoðunu veritabanlarýna veya Internet'deki çeþitli servislere istek yapýp gelen sonuçlarý beklemekle getiriyorlar. Node.js, yapýsý gereði asenkrondur. Ýstekleri paralel olarak yapar. Ýstekler bittikleri zaman Node'a callback yaparlar. Bu sayede anlýk olarak çok sayýda istek hýzlý bir þekilde iþlenebilir.
+	\subsubsection{Angular}
+	Angular javascript tabanlý açýk kaynak kodlu yazýlým geliþtiricilerin web, mobil ve masaüstü ortamda kolay uygulama geliþtirmelerini saðlayan bir platformdur. Ayrýca istemci tarafýnda çalýþan yada daha açýk bir ifade ile kullanýcýlarýn görebildiði ve etkileþebildiði ortamlarda (web tarayýcýlarýnda) çalýþan bir framework olduðu için bir Front-End Development pratiðidir.
+	\subsubsection{MongoDB}
+	MongoDB bize kendisini, geliþtirme ve ölçekleme kolaylýðý için tasarlanmýþ açýk kaynak, belge yönelimli(document-oriented) veritabaný olarak tanýtmaktadýr. MongoDB'de her kayýt, aslýnda bir dökümandýr. Dökümanlar MongoDB'de JSON benzeri Binary JSON(BSN) formatýnda saklanýr. BSON belgeleri, sakladýklarý elemanlarýn sýralý bir listesini içeren nesnelerdir. Herbir eleman, bir alan adý ve belirli tipte bir deðerden oluþur.
+	\subsubsection{Redis}
+	En basit haliyle Redis, key-value þeklinde tasarlanmýþ bir NoSQL veritabanýdýr. Memcached gibi verileri HDD yazmadan Ram üzerinde tutmaya yarayan bir platformdur. Memcahedden farklý olarak NoSql mantýðýyla çalýþtýðý için serverin kapansa dahi verilerin kaybolmasýna izin vermez.
+
+\newpage
+\section{KULLANILAN TEKNOLOJÝLER}
+Bu bölümde projede kullanýlan teknolojilerin tamamý ayrýntýlý bir biçimde anlatýlacaktýr.
+\subsection{Node.Js'e Giriþ}
+	NodeJS, server-side (sunucu tarafli) uygulamalar geliþtirmek için üretilmiþ bir teknolojidir. Ýlk yayýnlandýðý 2009 tarihinden bugüne diðer geleneksel sunucu taraflý uygulama teknolojilerinin aksine, birçok alanda farklý yapýsýyla türünün öncüsü olmuþtur.
+	\textbf{Ryan Dahl} henüz 1 sene önce (2008 yýlýnda) Google'ýn Chrome tarayýcý için geliþtirmiþ olduðu \textbf{v8 engine}'in üzerine oluþturduðu mimariyle, \textbf{JavaScript} ile \textbf{Back-end} uygulama geliþtirebileceðini göstermiþtir. Bu noktada v8'in yapýsý gereði sadece Web Browser üzerinde JavaScript çalýþtýrmak için yapýldýðýndan Back-end kýsmýnda dosya iþlemleri gibi birçok özelliði içinde bulun\textbf{ma}maktaydý. NodeJS bunun gibi pek çok ekstra yapýyý ve \textbf{V8}'i extend ederek bünyesinde barýndýrmaktadýr.
+	
+	V8 engine C++ diliyle geliþtirilmiþtir. Runtime'da JavaScript kodlarýný makina koduna dönüþtürür ve sonrasýnda native makina kodunu çalýþtýrýr. Hem Node projelerinin hem Chromium projesinin bu kadar performanslý olmasýnýn arkasýnda yatan sebep budur.
+	
+	NodeJS, \textbf{Single Thread Non-Blocking IO}, Asenkron programlama gibi pek çok özelliði ile öne çýkmaktadýr.
+	
+	NodeJS \textbf{Community}'si oldukça büyük olmasýnýn yanýnda Yahoo, Microsoft, LinkedIn, Uber, Paypal gibi pek çok dev firmanýn yazýlým sistemleri içerisinde bir pay edinmesi bu baþarýný gösteren en önemli kanýtlardan biridir.
+	
+	Asýl amacý Back-end projeler geliþtirmek olmakla birlikte NodeJs, Front-end otomasyonu ve package management gibi yazýlýmlarýn pek çok alanýnda çok yönlülüðü ile karþýmýza çýkmaktadýr.
+	
+\subsection{Ecmascript 6 ve NodeJS}
+	Bu proje hazýrlandýðý aþamada Ecmascript 7 ve 8 çýkmýþ bulunmaktadýr. Fakat ben projemde baþlangýç itibariyle kaynak bulurken sýkýntý çekmemek ve daha fazla örneðe ulaþabilmek adýna ES6 kullandým yaptýðým bilgilendirme de ona göre olacaktýr.
+	Öncelikle \textbf{"Ecmascript"} ve \textbf{"JavaScript"} farký nedir, çok fazla tarihçesine girmeden özetliyorum.
+	Ecmascript, JavaScript dilinin standartlaþtýrýlan sürümünün adýdýr (Bu standart Ecma-262 olarak da ifade edilmektedir). Diðer bir deðiþle, JavaScript dilinin standardýnýn ismidir diyebiliriz. Haziran 2015 itibariyle Ecmascript 6 kullanýlmaya baþlanmýþtýr. Bu versiyonla birlikte pek çok yeni özellik hayatýmýza girmiþtir.
+	
+	NodeJs içerisinde tüm ES6 özellikleri \textbf{Shipping, Stage} ve \textbf{Progress} olarak 3 grupta incelenmektedir.
+	
+	\textbf{Shipping:} Artýk NodeJs üzerinde \textbf{default} olarak kullanýma açýlmýþ ve herhangi bir tanýmlama yapmadan kullanabileceðimiz özellikleri içerir.
+	
+	\textbf{Staged: } Özel bir flag ile \textit{"-harmony"} kullanabileceðimiz ancak \%100 olarak tamamlanmamýþ özellikleri içerir.
+	
+	\textbf{In Progress: } Henüz implementasyonu tamamlanmamýþ özelliklerdir. Özel bir flag'le bu özelliklerde kullanýlabilir, ancak isminden de belli olduðu gibi özellikle production'a dönük uygulamalarda uzak durmamýz gerekiyor.
+	
+	\subsubsection{Arrow Function} 
+	Execution Context, belki de JavaScript geliþtiricilerin en çok zorlandýðý konularýn baþýnda geliyor. 
+	\textbf{Execution context} nasýl oluþur veya \textbf{this} keyword'ü neden window objesini gösterir gibi (çünkü nesneden baðýmsýz çaðrýlýyor) küçük nüanslar problem yapabiliyor. Bu noktada, arrow function özellikle fonksiyon içerisinde tanýmlanan fonksiyonlarý bulunduðu context'e otomatik olarak baðlamasýyla (bind metodu) protik anlamda kolay bir kullaným saðlýyor.
+	\subsubsection{String Interpolation}
+	Belki ilk bakýþta neden buna gerek var ki sorusu aklýnýza gelebilir, ancak yeni programlama dillerinde ve eski dillerin yeni versionlarýnýn çoðunda bulunan \textbf{String Interpolation} ifadelerine alýþmalýyýz.
+	Çünkü dillerin çoðunda, String deðerler \textbf{immutable} olarak tutulurlar ve bu String üzerinde deðiþiklik yapmak için arkaplanda da olsa pek çok nesne oluþturmak zorunda kalýnabilir ( performans problemi çýkarabilir). Bunun yanýnda \textbf{interpolation} kullanýmýnýn pratik olarak yazýmý kolaylaþtýrmasý ve Multiline String ifadeler kullanmamýza desteklediðinide belirteyim.
+	
+	\subsubsection{Class Yapýsý}
+	JavaScript programlamanýn \textbf{prototypical inheritance} konusu genellikle birçok geliþtiricinin kafasýnda hep bir soru iþareti býrakmýþtýr. Bu konuyla birlikte Prototype'lardan kurtulduk mu diye düþünüyorsanýz yanýlýyorsunuz. Çünkü Class kullanýmý ile JavaScript'in kalýtým yapýsý deðiþmiyor.
+	
+	Daha da basit bir ifadeyle, klasik programlama dillerinde olan \textbf{Class Based Inheritance} prensibine uygun olarak kod geliþtirenlere genellikle ters gelen prototypical inheritance JavaScript'in belki geliþim aþamasýný bile etkilemiþtir, çünkü anlaþýlmasý hep zor gelmektedir. 
+	Bu durumda Ecmascript 6 ile birlikte \textbf{proptypical inheritance} JavaScript tarafýndan görüntüde terkedilmiþ gibi olsa ve \textbf{class based inheritance} yazýlýyor gibi görünse de aslýnda kaputun altýnda hala prototypical inheritance kullanýlmaya devam edecektir. 
+	Sonuç olarak, biz class tanýmlamayla ilgili class'a metotlar eklediðimizde, JavaScript bunu prototypical inheritance prensiplerine uygun olarak yorumlamaya devam edecektir.
+	
+	\subsubsection{Let Const Ýfadeleri}
+	Ecmascript 6 ile gelen yeni tanýmlama ifadeleridir. \textbf{Var} deðiþkenininden farklý olarak, block scoped olarak ifade edilebilirler.
+	Yani \textbf{var} deðiþkeninin sahib olduðu ve çoðu yazýlým geliþtiricisinin kafasýný karýþtýran ve uygulamamýzýn biraz da kararlýlýðýný etkileyen bu duruma çözüm saðlayacaktýr.
+	
+	\begin{verbatim}
+	function a(){
+		if(true){
+			var b = 5;		
+		}	
+		console.log(b);
+	}
+	\end{verbatim}
+	
+	Yukarýdaki gibi bir kullaným, mesela Java'da olsa kodunuz hata verecekti. Çünkü if kendi scope'unu oluþturacaktý ve if bloðunun içerisinde tanýmlanan bir deðiþken block dýþýnda kullanýlamaz olacaktý. Ancak \textbf{var} ile tanýmlanan deðiþkenler if'i veya for gibi ifadeleri tanýmazlar. 
+	
+	Bu durumda yeni gelen \textbf{let}'in, \textbf{var}'ýn block scope tanýyan tipi olduðunu düþünebiliriz.
+	
+	Ayný þekilde \textbf{const} ifadesi de, block scope tanýmasýnýn yanýnda isminden de belli olduðu gibi sabittir.
+	
+	\begin{verbatim}
+	function a(){
+		if(true){
+			let b = 5;		
+		}	
+		console.log(b);
+	}
+	
+	\end{verbatim}
+	
+	Yukarýdaki gibi kullanýldýðýnda ise console.log(b) kýsmý çalýþmayacaktýr çünkü b tanýmlanmadý.
+	
+	
+	\subsection{Node.JS Mimarisi ve NPM}
+	\subsubsection{Event Driven Programming}
+	
+	Event Driven Programming, uygulamanýn akýþýný event'lerin karar verdiði uygulama tipidir. Yani uygulama içerisindeki akýþ, yayýmlanan event'lerin tetiklediði kod bloklarý ile ilerler. Bu event'ler bazen kullanýcýnýn bir input üzerinde yaptýðý deðiþiklikler olduðu gibi bazen de model katmanýnýzdaki deðiþiklikler olabilir. 
+	Genellikler kullaným alanlarýnýn baþýnda JavaScript ile Web uygulamarý geliþtirme gelmektedir. NodeJs ile Event Driven uygulama geliþtirmek JavaScript'in yapýsý gereði oldukça basittir.
+	
+\begin{verbatim}
+<button onclick="clickme()">Click</button>
+//Event handler
+function clickMe(){
+alert("Kullanýcý Týkladý");
+}
+\end{verbatim}	
+
+Yukarýdaki örnekte kullanýcýnýn týklamasý durumunda \textbf{clickMe} ismindeki fonksiyon çalýþacaktýr. Burada aslýnda Event driven uygulamanýn temel bir örneðini görüyoruz. Burada dikkat etmemiz gereken bir baþka nokta JavaScript Engine'in bu event'leri nasýl çalýþtýrdýðýdýr (çünkü onlarca event handler ayný anda tetiklenebilir).
+
+Þimdi JavaScript Engine'in bir event loop'u nasýl yönettiðini görelim.
+
+\begin{enumerate}
+  \item Browser içerisindeki JavaScript Engine, bir event loop oluþturuyor.
+  \item Yukarýdaki onClick metoduyla olduðu gibi callback fonksiyonumuzu herhangi bir olayla iliþkilendirerek kaydediyoruz.
+  \item Burada clickMe ilgili butona týklanmasý durumunda çalýþacak kod bloðudur.(Event Handler)
+  \item Yani clickMe aslýnda click Handler olarak da ifade etmemiz yanlýþ olmaz.
+  \item Öncelikle listener'lar vasýtasýyla event'lerimizi kaydediyoruz. Yukarýdaki örnekte butona click durumu için kayýt iþlemi gerçekleþtir.
+  \item Kullanýcý butona basmasý durumunda bir event, emit edilecek (yayýnlanacak), sonrasýnda JavaScript Engine gelen bu emit'li event sýrasýnýn içerisine ekleyerek (ayný anda birden çok event tetiklenebilidiði için JavaScript engine bu event'leri sýraya alýr) ve iliþkili olduðu kod bloðunu çalýþtýrýr(Event Handler).
+\end{enumerate}
+
+
+Event Driven Programming prensibi sadece Web deðil kullanýcýnýn aktif olarak uygulama ile iletiþim kurduðu mobil uygulamalar gibi pek çok alanda kullanýlmaktadýr(RXJava buna örnek gösterilebilir).
+
+\subsubsection{Single Thread, Multi Thread ve Non-blocking IO}
+
+Non-blocking IO'a gelmeden önce single ve multi thread kavramlarýnýn da üstenden geçelim. \textbf{Single Thread} isminden de belli olduðu gibi \textbf{t} zamanýnda sadece bir adet iþlem yapmanýza izin veren yapýlardýr.
+
+\begin{verbatim}
+var a = 1;
+var b = 2;
+var c = 3;
+var c = c+a+b;
+var d = c+a+b;
+console.log("c:" + c);
+console.log("d:" +d);
+\end{verbatim}
+	
+	Yukarýdaki 5 satýrlýk basit toplamalarýn yapýldýðý bir JavaScript kodu vardýr.
+	
+	JavaScript engine kodu yukarýdan aþaðýya okuyacak \textbf{c} için "6" ve \textbf{d} için de "9" çýktýsýný verecektir. Zaten JavaScript ile front-end uygulamalarý da geliþtirirken Browser üzerinde çalýþan \textbf{engine} bu þekilde ilerliyor.
+	Yukarýdaki oldukça basit bir iþlem olduðu için mikrosaniye mertebesinde \textbf{engine} bizim için ilk satýrdan baþlayýp son satýra kadar gelecekti. Peki bundan daha hýzlý yapabilme þansýmýz var mýydý?
+	Yani kodumuzu biraz düzenleyip iki parçaya ayýrýp farklý \textbf{threadler}'de çalýþtýrabilir miydik?
+	
+	\begin{verbatim}
+	var a = 1;
+	var b = 2;
+	var c = 3;
+	var c = c+a+b;
+	console.log("c:" + c );
+	(THREAD - 1)
+	
+	var d = c + a + b;
+	console.log("d:" + d);
+	(THREAD - 2)
+	\end{verbatim}
+	
+	Sorunun cevabý JavaScript için hayýr olsa da Java gibi farklý programlama dilleri bu konuda destek veriyor. Bir \textbf{t} zamaný için kodun farklý bölümleri ayný anda iþleniyor. Böylece \textbf{multithreading} ismi verilen bu kavramla bir birim zamanda x yerine 2x kadar kod iþleyebilirdir.
+	
+	Ancak açýkça sonucu olan hýz artýþý dýþýnda multithreading'in de çeþitli dezavantajlarý var. 
+	Tek thread yerine birden fazla thread çalýþabildiði için daha çok sistem kaynaðý harcar (\textbf{RAM, CPU vs})
+	Yukarýdaki örnekte de birebir gördüðümüz gibi Thread - 2'de kullanýlacak olan a, b ve c deðiþkenleri Thread - 1'de de kullanýlýyor. Yani \textbf{Shared Resource} (Paylaþýlmýþ kaynaklar) durumu var ki bunun yönetimi biraz zordur.
+	Buna ek olarak uygulamalarýmýz yukarýdaki gibi 5-6 satýr deðil binlerce satýr kodla çalýþtýðýýnda uygulamanýn da yönetimi bir o kadar zorlaþýrken, fazladan kullanýlan thread'ler fazladan sistem kaynaðý harcanmasýna neden olabilir.
+	Ancak tabi ki düzgün kullanýlan mimarisi oturtulmuþ \textbf{multithread} uygulamalarýnýn açýk bir avantajý vardýr. 
+	Olaya JavaScript tarafýndan baktýðýmýzda, JavaScipt'in multithread özelliðini desteklemediðini belirttim. Her kodumuzda maalesef yukarýdaki gibi olmayacak. Bazý durumlar sunucuya \textbf{request} atacaðýz veya kullanýcýdan bir \textbf{input} girmesini bekleyeceðiz. Bu durumda uygulamamýz ilgili satýrýn çalýþmasý için tüm Thread'i durduracak mý? Tabii ki hayýr.
+	\textbf{Non-Blocking IO} uygulama içerisinde \textbf{Network Request}'leri, dosya iþlemleri, database iþlemleri gibi uzun sürecek iþlemler sýrasýnda JavaScript içerisinde zaten tek thread kullanýldýðý için bu iþlemleri event driven olarak tanýmlayýp (Mesela HTTP request tamamlandýðýnda bir event fýrlat ve bu kod bloðu çalýþsýn gibi), kod bloðumuzun bloklanmadan çalýþmasý prensibine dayanýr. 
+	Bu kullaným geleneksel \textbf{back-end} sistemlerine göre oldukça büyük performans artýþý saðlar. Neden mi?
+	
+	Þöyle düþünelim; farklý \textbf{back-end} uygulama mimarilerinde kuullanýcýdan gelen istek database ile iþlem yapmak gerektiðinde kodumuz Database'e istek attýktan sonra cevabý beklemeye koyulur ve bu bekleme esnasýnda aslýnda sistem kaynaðý boþuna harcanýr. Bu bekleme milisaniyeler mertebesinde olsa da hergün binlerce requesting geldiði bir sistemde milyonlarca database iþlemi yapýlýr. Ve bu doðal olarak çok büyük bir sistem kaynaðýnýn boþ yere harcanmasý demektir.
+	
+	Peki bu durumda \textbf{NodeJS()} ne yapýyor? Database'e girmesi gereken durumda bir \textbf{callback} fonksiyonu oluþturarak database cavabýný gelmesi durumunda bir event, emit edilerek callback metodunun iþlemesi saðlanýyor. Bu bekleme esnasýnda JavaScipt Engine event loop'unu çalýþtýrmaya devam ederek baþka iþlemler yapmaya devam ediyor. Bu durumda sistem kaynaðý bekleme esnasýnda boþuna harcanmaktan kurtulup diðer iþlemlerde kullanýlýyor.
+	\subsection{NPM (Node Package Manager)}
+
+	NodeJS yapýsý gereði küçük bir çekirdek sunarak oluþturacaðýmýz uygulamalarýn özelliklerinin sonradan bizim tarafýmýzdan yazýlacak veya 3. Parti olarak eklenecek paketler halinde geliþtirilmesini teþvik etmektedir. NodeJS sadece dosya iþlemleri gibi \textbf{low level} uygulamanýn bulunduðu ortamla iliþki kurmasýný saðlayacak iþlerde \textbf{API} saplamakta, diðer tüm iþlemler için ekstra olarak modüller eklememiz gerekiyor. Diðer yandan kullanacaðýmýz bu modüllerden birçok ekstra modüle baðlýlýðý olacaktýr.
+	Bu durumda baktýðýmýzda bir çok paketin kullanýldýðý bir uygulamada  Node Package Manager'e ihtiyacýmýz vardýr. 
+	
+	NPM paketlerimizin yüklenmesi için iki farklý yol önermektedir: Global ve local (yerel) yükleme seçenekleri.
+	\textbf{Global Yükleme}: Ýsminden de belli olduðu gibi ilgili paketin tüm sistem üzerinde eriþebileceðimiz þekilde yükleneceðini belirtmektedir. Yani yükleyeceðimiz paketlerin \textbf{"her zaman iþimize yarayacak proje baðýmsýz"} olmasýna dikkat etmemiz gerekmektedir.
+	\begin{verbatim}
+	npm install -g grunt-cli
+	\end{verbatim}
+	
+	Yukarýdaki install komutu ile global olarak kurulmasýný saðlayan komut "-g" flag'idir.
+	\textbf{Local Yükleme}: Proje bazlý kullanýlmak üzere kullanacaðýmýz modülleri yüklemek için "-g" flag'ini kullanmadan yükleme yapmamýz yeterlidir. 
+	
+	\begin{verbatim}
+	npm install express
+	\end{verbatim}
+	
+	Yukarýdaki örnekte Express Framework modülü local olarak proje içerisinde kurulacaktýr.
+	
+	\subsection{ExpressJS}
+	ExpressJS kullanýcýnýn Request'i ile Response arasýndaki süreyi en kýsa tutacak þekilde yapýlandýrýlmýþtýr. Bu durumda hem performans olarak çok hýzlý yanýt verecek hem de sistem kaynaðý tüketimi minumum olacaktýr. ExpressJS basittir, aslýnda basit olmasý beraberinde hýzý da getirmiþtir.
+	Ayrýca mimarisi sizi uygulamlanýn hangi alaný ile ilgilenirseniz ilgilenin hiçbir þeyi kullanmaya mecbur býrakmadan kendi modüllerinizi ve 3. parti modülleri kullanabileceðiniz þekilde tasarlanmýþtýr. Bu esneklikle size kafanýzdaki uygulama mimarinizi oturtmaya imkan saðlar.
+	
+	\subsection{Middleware Kavramý}
+	Middleware kavramýnýn tam bir tanýmý olmamakla birlikte genel olarak; geliþtirici ile sistem arasýnda bulunan katmandýr. Sistem derken ya iþletim sistemi ya da Node altyapýsý olan sistemi kasteder.
+Daha spesifik olarak middleware katmaný kendisini uygulama ile sistem arasýnda iletiþim katmaný olarak atamaktadýr.
+	Middleware katmaný olmadan uygulama geliþtirirsek tüm request iþlemi tek ve uzun bir request handler ile yönetilecektir. Middleware yapýsý sayesinde request handler parçalara bölünüp, her parçada farklý bir iþ yapmamýzý saðlar. Middleware kullanarak yapabileceklerimiz;authorization, proxies, routers, cookie ve session yönetimi. Örneðin ilk middleware yapýsý log iþlemi olsun ve tüm istekler console üzerinden görüntülensin. Bir sonraki middleware olarak authentication olsun ve yetkisi olmayan kullanýcýlar daha sonraki middleware katmanýna geçemesin.
+
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.7\textwidth, keepaspectratio]{nodemiddleware.png}
+    \caption{\textit{NodeJs Middleware Yapýsý}}   
+	\label{fig:middleware}
+\end{figure}
+
+Normal node yapýsýnda middleware yapýsý Þekil \ref{fig:middleware}'deki gibi iþlemektedir. Client istek yapar. Node http server bu isteði yazdýðýmýz handler function yapýsýna iletir. Handler içerisinde istek iþlenir ve http server'a tekrar yollanýr.	
+
+Express kullanýrken middleware fonksiyonlarýný kendimiz yazabiliriz veya hazýrda bulunan geliþtiriciler tarafýndan yazýlýmýþ açýk kaynaklý module yapýlarýný kullanabiliriz. Aþaðýdaki yapý express middleware yapýsýný göstermektedir.
+
+
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.7\textwidth, keepaspectratio]{expressmiddleware.jpg}
+    \caption{\textit{ExpressJS Middleware Yapýsý}}
+    \label{fig:expressmiddleware}
+\end{figure}
+
+ExpressJs Middleware yapýsýnda ise Þekil \ref{fig:expressmiddleware}'de gösterildiði gibi node http server üzerinden giden istekler stack yapýsýnda toplanýr. Stack yapýsý içerisinde istek middleware fonksiyonlarýný teker teker iþleyip sonunda response olarak http server'a kullanýcý isteðinin cevabýný döndürür. Stack aþamasýnda middleware yapýlarý iþlenirken herhangi bir hata oluþtuðu durumda iþlem sýrasý kesilip hata middleware yapýsýna geçilmektedir. Kýsaca özetlersek express frameworkte gelen istek stack yapýsý üzerinden yukarýdan aþaðýya doðru tüm middleware iþlemlerinden geçer.
+
+Middleware fonksiyonlarý 3 parametre almaktadýr. Request ve response sürekli bulunmalýdýr. Bunlar: function logger(request,response, next). Hata middleware yapýsý ise 4 parametre alýr. err, request, response, next 
+
+Örnek verecek olursak; logger yaparken, console.log ile basit bir logger yapýsý yaparýz. Eðer logger iþlemini gerçekleþtirmek için hazýrlanmýþ "morgan" adý verilen module yapýsýný kullanýrsak iþlemimizi kýsaltýrýz. Sonuçta tekerleði yeniden icat etmemize gerek yok hazýr geliþtirilmiþ modülleri kullanýp yapacaðýmýz iþe odaklanmak daha mantýklýdýr.
+
+Express.js, middleware yapýsýný kendi sitesinde basitçe anlatmýþ.Þekil \ref{fig:ornekExpress}'i kýsaca özetleyecek olursak. Önceden yüklenmiþ(npm install express -save) express modulünü ekliyor ve app deðiþkenine express uygulamasýný tanýmlýyor.
+
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.8\textwidth, keepaspectratio]{ekran-alc4b1ntc4b1sc4b1.png}
+    \caption{\textit{Express.js Kullanýmý}}
+  	 \label{fig:ornekExpress}
+\end{figure}
+
+ Mylogger ile basitçe log yapýsý oluþturup next() metodu ile bir sonraki yapýyý çaðýrýyor. app.use(myLogger) ile stack yapýsýna ekleme iþlemi yapýlýyor. Ardýndan routing iþlemi yapýlarak "/" yani açýlýþta gösterilecek ilk ekrana "hello world" yazdýrýyor.
+
+
+
+
+
+\subsection{Uygulamada Kullanýlan Node Modülleri}
+\subsubsection{Morgan}
+	Uygulama içerisindeki HTTP request (isteklerini) loglamak için kullanýlan bir modüldür. Bu modülle uygulamamýza gelen istekleri izleyebiliriz. Çalýþma mekanýzmasý middleware þeklindedir (diðer pek çok modülde olduðu gibi). Gelen request morgan üzerinden geçerken loglanýr.
+\subsubsection{Body-Parser}
+Bu modül isminden de anlaþýlacaðý üzere uygulamýza gelen request'lerin body'lerinin kullanýlmak üzere parse edilmesini (ayrýþtýrýlmasýný) saðlamaktadýr.
+JSON, Text, Raw ve URL-enceded-form body'lerini parse edebilmekte, multipart request'leri ise parse ede\textbf{me}mektedir.
+
+\subsubsection{Nodemon}
+Front-end dünyasýnda zaten çok sýk kullanýlan bu teknolojinin, Back-end tarafýndaki güzel bir temsilcisidir. NodeJS ile uygulamalar geliþtirirken ayný diðer backend teknolojilerinde olduðu gibi kodlarýn üzerinde deðiþiklik yaptýðýmýzda sunumuzu tekrardan çalýþtýrmamýz gerekiyor. \textbf{Nodemon} çalýþma ortamýmýzda dosyalarý sürekli izleyerek dosyalardaki deðiþiklik durumunda Node sunucusunu yeniden baþlatmakta böylede yaptýðýmýz deðiþikliði hemen test edebilmemizi saðlamaktadýr. 
+
+\subsubsection{Lodash}
+Lodash'ý pek çoðumuz biliyoruz aslýnda. Front-end uygulamalarýnýn bir çoðunda JavaScrpit kodlarýmýzýn pek çok iþlemi bizim yerimize performanslý olarak yapan kütüphanedir. Yapýmý aþamasýnda esinlenildiði Undurscore kütüphanesine ek, pek çok fonksiyon ve performans üstünlüðü eklemiþtir. Özellikle diziler (array) ve nesneler (object) üstüne eðilse de stringler gibi diðer konularda da gayet iyi çözümler sunuyor.
+\subsubsection{Cookie-Parser}
+Request ile gelen Cookie'leri okumak ve deneceðimiz response'a cookie set etmek için kullanýlan modüldür. Uygulama seviyesinde middleware olarak eklenir. 
+\subsubsection{Passport}
+NodeJS için en popüler \textbf{Authentication} modülüdür. Kullanýcýlarýn kullanýcý adý þifreleri veya \textbf{OAuth} (Open Protocol) ile 3. parti (Facebook, Twitter, Google) hesaplarý ile authentication yapmasýný saðlamaktadýr. Authentication iþlemleri uygulamanýn akýþ þemasýný ve davranýþlarýný deðiþtirebilecek bir yapýdýr. 
+Dolayýsýyla Passport'u, Log gibi yerel olarak sadece uygulamanýn belli bir yerine eklenebilecek bir middleware yerine uygulama genelinde kullanabileceðimiz bir yapý olarak düþünebiliriz.
+
+\subsubsection{dotenv}
+
+Dotenv, ortam deðiþkenlerini bir .env dosyasýndan process.env dosyasýna yükleyen sýfýr baðýmlýlýk bir modüldür. Yapýlandýrmayý koddan ayrý bir ortamda saklamak için The Twelve-Factor App metodolojisine dayanýr.
+
+\subsubsection{Mongoose}
+MongoDB ile Node uygulamalarýný yapabilmemiz için kullanacaðýmýz modülün ismi Mongoose'dur.
+NodeJS dünyasýnda oldukça ünlü olan bu modül yaklaþýk 8.500 yýldýza sahiptir. Birçok back-end teknolojisinde Relational veritabanlarý için \textbf{ORM} olarak tanýmlanan Object Relational Mapping'in Mongo tarafýndaki karþýlýðý olarak düþünülebilir.
+
+\subsubsection{PM2 Modülü}
+
+Geliþtirmenizi tamamladýnýz ama üretim ortamýnda uygulamanýzý çalýþtýrmanýz ve izlemeniz gerekiyor. Ýþte PM2 burada devreye giriyor ve size hatalarý log'lama, uygulamanýz öldüðünde tekrar çalýþtýrma, kullandýðý kaynaklarý izleme gibi imkanlar sunuyor.
+PM2 uygulama process'lerinin sürekliliðini saðlamak için kullanýlan process manager'dir.
+
+\subsection{Express Generator}
+Express Generator projesiyle uygulamanýn ilk ayaða kalkmasý esnasýnda ihtiyacýnýz olacak yapý ve minik kod bloklarý eklenmiþ þekilde size bir iskelet sunuyor. Böylece bu iskeleti oluþturmak için harcayacaðýnýz zaman da size kalýyor.
+
+Öncelikle \textbf{Express generator} isimli paketimizi kuruyoruz.
+\begin{verbatim}
+npm install express-generator -g
+\end{verbatim}
+
+Sonrasýnda geliþtireceðmiz uygulamanýn ismiyle 
+
+\begin{verbatim}
+express mustafaApp
+\end{verbatim}
+
+yazmamýz yeterli, Express-generator bizim için uygulamayý oluþturacaktýr.
+
+
+\subsection{MongoDB}
+MongoDB, ilk yayýnlandýðý 2009'dan bu yana sadece NodeJS deðil pek çok back-end teknolojisi ile bir arada kullanýlan veritabaný çözümüdür.
+MongoDB'ye geçmeden önce biraz geleneksel iliþkisel veritabaný mimarilerini düþünelim. Birçok tablonun olduðu ve bu tablolarýn içerisine gelecek verilerin \textbf{absolute} (kesin) bir þekilde belirlendiði, sonrasýnda veritabanýnýn verileri alýrken de bu farklý tablolar arasýnda iliþkiler kurularak verilerin alýndýðýný görüyoruz. 
+Örnek olarak bir E-Ticaret sitesi düþünelim ve bu web uygulamasýnýn back-end tarafýndan geleneksel veritabaný sistemleri ile yapýlmýþ olsun. Bir satýn alma olayýndan sonra kullanýnýn adýný ve ürünlerini ekrana yazdýracaðýz. 
+Bunun için minimum iki tabloya ihtiyacýmýz olacak. 
+Þöyle ki;
+\begin{enumerate}
+\item Kullanýcýnýn tüm bilgilerini içinde barýndýran kullanýcý tablosu (isim, yaþ, telefon, müþteri numarasý vs.
+\item Ve sipariþ detaylarýný içinde barýndýran Order tablosu (Sipariþ numarasý, sipariþ saati, müþteri numarasý vs
+\end{enumerate}
+
+Yukarýdaki örnekte \textbf{User} tablosundan müþteri numarasý üzerinden iliþki kurduðumuz \textbf{Order} tablosundan verileri çekebiliyoruz. Bu durumda iki tablo arasýndaki iliþkiyi \textbf{customer\_id} isimli yani müþteri numaranýzý tutan \textbf{foreign key} ile saðladýðýmýzý varsayalým. Bu basit iþlemde iki tablodan verileri aldýk. Peki listeleyeceðimiz verilerde satýn alýnan ürünlerde olsaydý? Bu durumda yine database'in yapýsýna göre en az 1 tabloya daha ihtiyacýmýz olacaktý.
+Geleneksel mimaride iþler bazen karmaþýklýk durumuna göre birçok tablo girdiði için zorlaþabiliyor. Bu durumda yýllar içerisinde \textbf{NoSQL} olarak tanýmlanan bu geleneksel yaklaþýmdan ayrýlmýþ çözümler ortaya çýktý. \textbf{MongoDb}'de belkide bunlarýn en popüleridir.
+\textbf{NoSQL} sistemler ile verilerimizi anahtar deðer, \textbf{document oriented} gibi farklý þekillerden SQL'in katý yapýsýna baðlý kalmadan saklayabiliriz.
+
+\textbf{MongoDB'nin Özellikleri þu þekildedir}
+\begin{enumerate}
+\item Ölçeklenebilirdir (Scalable). Veri boyutu arttýðý durumlarda veya performans sýkýntýsý yaþadýðýmýz durumlarda makine ekleyebiliriz
+\item Veriler document (belge) biçiminde saklanýr. Burada JSON verilerini kullanabiliriz
+\item Veriler JSON þeklinde saklandýðý için gelen veri yapýsý deðiþse bile kaydetme iþleminde sýkýntý yaþanmaz.
+\item Verilerin birden fazla kopyasý saklanabilir ve veri kaybý yaþanmaz (Replication)
+\item Veriler üzerinde index oluþturarak verilere hýzlý bir biçimde ulaþabiliriz
+\end{enumerate}
+
+\subsection{Redis}
+	Redis, data structure'larýmýzý saklamak için kullandýðýmýz bir teknolojidir. Redis in memory olarak çalýþýr, yani verileri bellekte tutmakta ve bu durum onu performans anlamýnda çok öne çýkarmaktadýr. Kullaným alanlarýný incelediðimizde çok fazla data'nýn aktýðý ve performans beklentisi gerektiren iþler olduðunu da görüyoruz. Session, Log vs...
+\\
+	Temel yapýsý <Key,Value> þeklinde olan Redis verileri String, Hash, Set, Sorted Set ve Sýralý List þeklinde tutar.
+	
+	\textbf{Avantajlarý}
+	\begin{enumerate}
+	\item CPU kullanýmýný azaltýr.
+	\item Performans artýþý saðlar.
+	\item IO iþlemini azaltýr.
+	\item Veriye ulaþýmý en basite indirir.
+	\item Açýk kaynak kodlu olmasý büyük bir avantaj.
+	\item Birçok popüler yazýlým dilini desteklemektedir.
+	\item Komutlarý kolay ve dökümante edilmiþtir.
+	\item Birçok veri türünü desteklemektedir.
+	\item Senkron çalýþmaktadýr.
+	\item Cluster Sharing, Sentinel, Replication gibi birçok enterprise özelliklere sahiptir.
+	\end{enumerate}
+
+\textbf{Dezavantajlarý}
+
+	\begin{enumerate}
+	\item	Veri boyutu ile doðru orantýlý olarak RAM ihtiyacýnýz artar.
+	\item Ýliþkisel veritabanlarýnda olduðu gibi karmaþýk sorgularý desteklemez.
+	\item Join Mantýðý yoktur.
+	\item Transaction desteði yoktur.
+	\item Veri güvenliði için bir kontrol mekanizmasý yoktur.
+	\end{enumerate}
+	
+	
+	\subsection{Socket.IO}
+	Gerçek zamanlý bir uygulama dendiðinde akla sunucudaki bir deðiþikliðin anýnda istemci tarafýnda, istemci tarafýndaki bir deðiþikliðin anýnda sunucu tarafýnda deðiþikliðe sahip olmasý olarak özetleyebiliriz. 
+	Son zamanlarda Web uygulamalarýnda popülerliði ve kullaným alaný giderek artsa da (Sosyal medya uygulamalarýndaki chat implementasyonlarý gibi) aslýnda neredeyse internetin hayatýmýza girdiði ilk zamanlardan beri teknolojik yapýsýný ne olursa olsun kullanmaktayýz(IRC, ICQ gibi).
+	Ancak zaman içerisinde kullanýcý tarafýnda pratikte kullanýmý deðiþmese de altyapý olarak farklýlaþtýðýný söyleyebiliriz.
+	Öncelikle Polling yöntemiyle baþlayalým.
+	Döviz kularýnýn canlý olarak gösterildiði bir web sayfaasý yaptýðýmýzý düþünelim. Bu web sayfasý içerisindeki rakamlarýn sürekli olarak sunu tarafýnda güncellendiðini varsayalým. clilent tarafýnda sunucuya belli aralýklarla AJAX istek gönderiyoruz. Eðer deðiþiklik varsa View'imizi yeni datalarla güncelliyoruz.
+	Ancak \textbf{Polling} yönteminin çeþitli dezavantajalarý var.
+	Tek yönlü çalýþýyor. sunucudaki deðiþikliði sunucuya sormadan öðrenemiyoruz. Sürekli olarak kontrol amaçlý sunucuya request gittiði için fazladan sistem ve veriyolu kaynaðý harcanýyor.
+	Peki þimdi altyapýyý nasýl saðlýyoruz?
+	Günümüzde tüm modern browser'larda W3C tarafýndan standart hale getirilmiþ bir teknoloji olan Websocket protokolü kullanýlmaktadýr.
+	Bu teknoloji Two way commutication saðlar. Yani sunucudaki bir deðiþiklik istemci tarafýna, istemci tarafýndaki bir deðiþiklik sunucu tarafýna \textbf{PUSH} yapýlarak iletilir.
+	Veirlerin Push ile akmasý, yani bir tarafýn diðer tarafa günclleme var mý diye sormadan eðer güncelleme varsa direkt olarak datalarla bildirmesi sistem kaynaðý ve veriyolu anlmaýnda avantaj saðlamaktadýr. 
+	Doðal olarak Polling metoduna göre performans olarak hýzlýdýr (full dublex communication).
+	
+	\textbf{Websocket ile Socket.io arasýnda nasýl bir iliþki var?}
+	Websocket'in bu kadar geliþmiþ bir yapýsý olmasýna raðmen direkt olarak kullanmanýn bazý sakýncalarý var. Bunlardan biri HTML5 standardý olduðu için implementasyonunun sadece modern browser'lara yapýlýyor olmasý. 
+	Geliþtirdiðimiz uygulamalarýn tüm kullanýcýlar tarafýndan kullanýlmasýný istiyorsak, Websocket kullandýðýmýzda eski tarayýcýya sahip kullanýclar kullanamayacaktýr.
+	Socket.io, aslýnda Websocket üzerinde çalýþan bir teknolojidir. Geliþtirici ile Websocket arasýnda Abstraction saðlayarak eðer kullandýðý tarayýcý Websocket desteklemiyorsa alternatif yöntem üzerinden yine Real time haberleþmeyi saðlayabilmektedir.
+	Socket.io, client tarafýnýn socket baðlantýsýný açmak istediði ilk request'te Websocket kullanýp kullanamayacaðýný kontrol ederek server ile baðlantýsýný configure etmektedir.
+	Socket.io ile hem yapýsal hem de sonradan oluþturacaðýmýz custom event'leri gönderip alabiliyoruz.
+	
+	\subsection{AngularJS}
+	
+	AngularJS, dinamik web uygulamalarý için yapýsal bir frameworktür. HTML'i þablon dili olarak kullanmanýzý saðlar ve uygulamanýn bileþenlerini açýk bir þekilde ifade etmek için HTML sözdizimini geniþletmenize izin verir. Angular'ýn veri baðlama ve baðýmlýlýk enjeksiyonu, aksi takdirde yazmak zorunda kalacaðýnýz kodun çoðunu ortadan kaldýrýr. Hepsi tarayýcýda olur ve herhangi bir sunucu teknolojisi ile ideal bir ortaklýk yapar.
+	\\\\
+	
+	\textbf{AngularJS Özellikleri}
+	\begin{enumerate}
+	\item AngularJS, Rich Ýnternet Uygulamasý (RIA) oluþturmak için güçlü bir JavaScript tabanlý geliþtirme çerçevesidir (framework).
+	\item AngularJS, temiz bir MVC (Model View Controller) yöntemiyle istemci tarafý uygulamasý (JavaScript kullanarak) yazmak için geliþtiriciler saðlar.
+	\item AngularJS ile yazýlmýþ uygulama çapraz (Cross) tarayýcý uyumludur.
+	\item AngularJS otomatik olarak her tarayýcý için uygun JavaScript kodunu iþler.
+	\item AngularJS açýk kaynak kodlu, tamamen ücretsiz ve dünyadaki binlerce geliþtirici tarafýndan kullanýlmaktadýr. Apache Lisansý sürüm 2.0 kapsamýnda lisanslanmýþtýr.
+	\item Genel olarak, AngularJS, bakýmý kolay bir þekilde tutarak büyük ölçekli ve yüksek performanslý bir web uygulamasý oluþturmak için bir çerçevedir.
+	\end{enumerate}
+
+\textbf{AngularJS Temel Özellikleri}
+
+\textbf{Veri baðlama} - Model ve görünüm bileþenleri arasýnda otomatik olarak veri senkronizasyonu.
+\\\textbf{Kapsam} - Bunlar modele referans nesneleri. Denetleyici ve görüntü arasýnda tutkal gibi davranýrlar.
+\\\textbf{Denetleyici} - Bunlar belirli bir kapsama baðlý olan JavaScript iþlevleridir.
+\\\textbf{Hizmetler} - AngularJS, XMLHttpRequests oluþturmak için \$ https: gibi çeþitli yerleþik hizmetler ile birlikte gelir. Bunlar, yalnýzca bir kez uygulamada örneklendirilen tek nesnelerdir.
+\\\textbf{Filtreler} - Bunlar, bir dizideki öðelerin alt kümesini seçer ve yeni bir dizi döndürür.
+\\\textbf{Yönergeler} - Yönergeler, DOM öðelerindeki iþaretleyicidir (öðeler, özellikler, css ve daha fazlasý gibi). Bunlar, yeni ve özel widget'lar olarak görev yapan özel HTML etiketleri oluþturmak için kullanýlabilir. AngularJS yerleþik yönergelere sahiptir (ngBind, ngModel ...)
+\\\textbf{Þablonlar} - Bunlar, denetleyici ve modelden gelen bilgi içeren iþlenmiþ görünümdür. Bunlar, tek bir dosya (index.html gibi) veya "partials" kullanarak bir sayfada birden fazla görünüm olabilir.
+\\\textbf{Yönlendirme} - Görüþ deðiþtirme kavramý.
+\\\textbf{Model Görünümü } - MVC, bir uygulamayý farklý kýsýmlara (Model, Görünüm ve Denetleyici olarak adlandýrýlýr) bölmek için bir desen kalýbýdýr ve bunlarýn her biri farklý sorumluluklara sahiptir. AngularJS MVC'yi geleneksel anlamda uygulamýyor, aksine MVVM'ye (Model-View-ViewModel) daha yakýndýr. Açýsal JS takýmý, mizahi bir þekilde Model Görünümü olarak bahsetmektedir.
+\\\textbf{Derin Baðlantý} - Derin baðlantý, URL'de yer alan uygulama durumunu kodlayarak yer imi eklemenizi saðlar. Uygulama daha sonra URL'den ayný duruma geri yüklenebilir.
+\\\textbf{Baðýmlýlýk Enjeksiyonu} - AngularJS, uygulamanýn geliþtirilmesini, anlaþýlmasýný ve test edilmesini kolaylaþtýrarak geliþtiriciye yardýmcý olan yerleþik baðýmlýlýk enjeksiyonu alt sistemine sahiptir.
+	
+	\textbf{AngularJS Avantajlarý}
+	
+	\begin{enumerate}
+	\item AngularJS, Tek Sayfa Uygulamasý'ný çok temiz ve bakýmlý bir þekilde yaratma olanaðý saðlar.
+	\item AngularJS, HTML'ye veri baðlama yeteneði saðlar ve böylece kullanýcýya zengin ve duyarlý bir deneyim kazandýrýr
+	\item AngularJS kodu birim test edilebilir.
+	\item AngularJS ile geliþtirici daha az kod yazar ve daha fazla iþlevsellik elde eder.
+	\item AngularJS'de, görünümler saf html sayfalardýr ve JavaScript ile yazýlmýþ kontrolörler iþlemlerini yapar.
+	\end{enumerate}
+	
+	\newpage
+	\section{Projeyi Canlýya Alma Etme}
+	Bu bölümde yapýlan projeyi nasýl canlýya alýrýz, canlýya alma iþlemleri yapýlýrken neler yapýlmalýdýr, hangi plaform bizim projemiz için daha doðru bir yaklaþým olacaktýr ve Git, github nedir projeler için neden önemlidir bu konular üzerinde durulacaktýr.
+\subsection{Git nedir?}
+	Þüphesiz son  yýllardaki en popüler versiyon kontrol sistemi Git'dir. Projeler geliþtirirken ister tek ister ekip olarak çalýþalým, kodlarýmýzýn saðlýklý bir þekilde tutulmasý, sürümlerin yönetilmesi için en önemli görev Git'e düþmektedir.
+	
+	Genel olarak diðer \textbf{VCS} (Versiyon Kontrol Sistemi)'e göre avantajlarý aþaðýdaki gibi sýralayabiliriz. 
+	\begin{enumerate}
+	\item Daðýtýk sistemli olmalarýndan ötürü geçmiþte \textbf{SVN}(Subversion) ile yaþadýðýmýz kod kaybý gibi pek çok problemin önüne geçmektedir. Sunucunun çökmesü artýk eskisi kadar dert deðil. Çünkü herkeste tüm history'i içeren local bir kopyasý var.
+	\item Artýk yaþam alanlarýmýzýn her noktasýnda internet olsa da projelerimizde git kullanýyorsak projemizin localde tutulduðu için internet baðlantýsýna ihtiyaç yoktur.
+	\item Hýzlýdýr. Yüzlerce MB'lýk projeleri bile oldukça rahat bu sisteme dahil edebilirsiniz. 
+	\item Birçok geliþtiricinin bulunduðu projelerde merge iþlemi sancýlýdýr. Gir diðer VCS'lere nazaran merge iþleminde daha baþarýlý.
+	\item Basit iþlemleri öðrenmesi kolay ama sonraki aþamada ileri seviyeye çýkmak o kadar kolay deðil sýrf Git'in akýþý için birçok pattern geliþtirilmiþ durumda.
+	\item Braching mekanizmasý oldukça geliþmiþtir.
+	\item Github gibi açýk kaynak için tekel olan bir uygulamada kullanýlýyor.
+\end{enumerate}	
+
+\subsection{Sunucu Seçimi}
+Geliþtirdiðimiz projeleri son kullanýcýya iletmek için sunucu üzerinden yayýnlamamýz gerekiyor. Ýnternetin ilk zamanlarýnda bu sunucu üzerinde bir shared hosting kiralayýp kullanýcýlara sunma yönündeydi. Shared hosting'de onlarca farklý uygulama ayný anda isminden de belli olduðu gibi 1 shared environment'de çalýþmaktadýr. Bu da beraberinde her ne kadar oldukça maliyetsiz bir çözüm yöntemi olsa da performans ve güvenlik sorunlarýný doðurmaktadýr. Godaddy gibi birçok firma bu konudaki ürünlerini sunmaya devam etmektedir.
+	Ancak bu nokada artýk internet kullanan kiþi sayýsýnýn yýllar içerisinde artmasý ve buna baðlý olarak cloud mimarilerinin geliþmesi production'daki ürünlerin daha saðlam ve scale edilebilir sistemler üzerinde yayýnlanmasýný beraberinde getirdi.
+	Þu anda en popüler iki mimari olan \textbf{Platform as a Service} (PaaS) ve \textbf{Infrastructure as a Service} (IaaS) kavramlarýný inceleyelim.
+	
+	\textbf{Paas:} Sunduðu yapýyla geliþticileri sistem bilgisine sahip olmasalar bile kendi yapýlarý üzerinde çalýþtýrmayý varsaymaktadýr. Ýçerisinde barýndýrdýðý pek çok servisle geliþtirme süreçlerine katký saðlamaktadýrlar. Þunu kabul etmemiz gerekir ki sistem süreçleri, sistemin kaynaklarýnýn yönetimi en az yazýlým kadar geliþtiriciyi zorlamaktadýr.
+	Nispeten daha kolay kullaným açýsýndan Paas çözümler Iaas sistemlerden öne çýkarken, güvenlik ve esneklik ile shared hosting'lerden çok hada iyi konumdadýr.
+	Paas hizmeti veren en önemli firmalar aþaðýdaki gibidir.
+	
+	Heroku, Digital Ocean, EngineYard, OpenShift.
+	
+	\textbf{IaaS:} Buluut biliþimiz en \textbf{low level} hizmeti olarak ifade edebiliriz. Hizmeti sunan firma tarafýndan kiþiye açýlacak sanal sunucunun yönetimini (ekstra hizmetlerde sunabilmekte) geliþtirici tarafýna býrakmaktadýr. IaaS tipi yapýlarý kullanabilmek için sistem tarafýnda bilginiz olmasý gerekiyor. Bu hizmeti aldýðýmýz firma sunucu üzerindeki hemen hemen herþeyin bizim tarafýmýzdan yapýlabileceðini belirtiyor. Bunun çýktýsý olarak da oldukça esnek, scale edebilen sistemler geliþtirebiliyoruz. IaaS hizmeti veren en önemli firmalar AWS, Azure ve Rackspace'dir.
+	Iaas ve Paas arasýdnaki genel farklarý inceledikten sonra deploy iþlemini ilk denediðim ama redis yapýlandýrmasýný yapamadýðým için yarýda kalan Heroku'dan size bahsetmek istiyorum.
+	
+	\subsubsection{Heroku}
+	Heroku destek verdiði birçok dil ve kullaným kolaylýðý ile öne çýkan \textbf{Platform as a Service} tipinde bir firmadýr. Genelde küçük ve orta ölçekli projeler ya da prototip uygulamalar için tercih edilmektedir. En büyük özlliðinin kolay kullanýmý ve hýzlý deploy yapabilme imkaný tanýmasý olduðunu tekrar hatýrlatayým. 
+	AWS gibi sistemler maalesef her geliþtiriciye hitap etmeyebiliyor. Çünkü bu yapýlarý kullanabilmek için en azýndan orta ölçekli bir sistem bilgisine ihtiyaç bulunmaktadýr. Bunun yanýnda Digital Ocean gibi ara çözümlerde bulunmaktadýr. Bunun yanýnda \textbf{Heroku} eðer kýsa ve orta vadede hýzlý scale etmeniz gereken bir projenize varsa maliyet olarak biraz fazla yük getireceðini belirteyim.
+	Þimdi sizlere kullanmýþ olduðum ve redis yapýlandýrmam dahil herhangi bir problem yaþamadýðým Digital Ocean'dan bahsetmek istiyorum.
+	\subsubsection{DigitalOcean nedir? Ne yapar?}
+	DigitalOcean, bulut tabanlý altyapý saðlayýcýsý olarak kendini konumlandýran, geliþtirme, sürüm kontrolü ve test ortamlarý gibi bir çok ihtiyaca cevap veren dünyanýn en büyük bulut sunucu saðlayýcýlarýndan biri. Tabi, detaylara bakýldýðýnda Þekil \ref{fig:digitalOcean}'deki markalarýn farklý sorunlara odaklandýklarý da aþikar.
+	
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.8\textwidth, keepaspectratio]{digitalocean-1.jpg}
+    \caption{\textit{Genel Bulut Kullanýmý}}
+    \label{fig:digitalOcean}
+\end{figure}
+	
+	 Örneðin Amazon ile kesiþen noktalar (Lightsail) dýþýnda resmin tamamýna baktýðýmýzda Amazon rekabetinin çoðunlukla Google AppEngine ve Microsoft Azure tarafýnda yoðunluk kazandýðýný görebiliriz.
+	
+	
+
+
+
+\textbf{DigitalOcean geliþtiricilere neler sunuyor?}
+
+\begin{enumerate}
+\item Kullaným Kolaylýðý \\
+\textbf{Droplet} adý altýnda ifade edilen bulut sunuculara Image yada app tercihi, kapasite ve bölge seçiminizin ardýndan saniyeler içerisinde 1 dakikadan az bir sürede sahip olabilir, oluþturduðunuz dropletleri pratik bir þekilde kontrol edebilirsiniz. Ayrýca, API üzerinden de droplet kontrolleri gerçekleþtirebilmektesiniz.
+\item \textbf{SSD Disk} Verileriniz performansý yüksek ve standart olarak sunulan SSD disklerde tutulmakta.
+\item \textbf{Ücretlendirme Avantajý} Aylýk minimumda \$5 (saatlik \$0.007)'dan baþlayan fiyatlarla kullanýma baþlayabilirsiniz. Droplet pasif olduðu durumlarda da veri barýndýrdýðý için saatlik ücret iþlemeye devam ediyor. Image alýp droplet'i kaldýrarak test kullanýmlarýný çok daha efektif bir fiyatlandýrmayla sürdürebilirsiniz.
+\item \textbf{Distro Seçimleri} Oluþturacaðýnýz droplet için Ubuntu, CentOS, Debian, Fedora, CoreOS gibi bir linux daðýtýmlarýnýn yaný sýra FreeBSD de seçebilirsiniz.
+\item \textbf{Tek Týkla App Kurulumu} LAMP, LEMP, MEAN, Django, Ghost, WordPress ve Docker gibi tek týklama ile popüler bir çok uygulama kurulumunu hýzlýca gerçekleþtirebilirsiniz.
+\item \textbf{Teknik Destek} Karþýlaþabileceðiniz bir çok soruna yönelik olarak hazýrlanmýþ oldukça kullanýþlý bir içerik yýðýnýna sahipler. Ek olarak, içerik dahilinde ulaþamadýðýnýz çözümlere komünite üzerinden hýzlý bir þekilde cevap alabilirsiniz. Hala çözümsüz kalmýþsanýz hýzlý dönüþ alabileceðiniz bir ticket oluþturabilirsiniz.
+\end{enumerate}
+
+\subsubsection{Droplet}
+Kullanýmý kolay ve yeniden boyutlandýrýlabilir bulut sunucusudur (VPS).
+
+\begin{enumerate}
+\item Bir Linux daðýtýmýný, uygulamayý seçerek ya da önceden oluþturduðumuz snapshor ile Droplet oluþturabiliriz.
+\item Ýhtiyacýmýz olan kaynaklara dayalý bir Droplet boyutunu seçip. Kontrol panelinden istediðimiz zaman yeniden \textbf{dikey} (vertical) boyutlandýrabiliriz. Dikey boyutlandýrma mevcut Droplet'in (sunucu) \textbf{CPU, RAM} veya \textbf{Diskinin ölçeklendirmesi} (scalability) anlamýndadýr. \textbf{Yatay} (Horizontal) ölçeklendirme ise; mevcut havuza daha fazla makine (VPS-Droplet) ekleyerek dinamik olarak ölçeklendirmektir.
+\item Droplet'i dünya üzerinde bulunan farklý veri merkezlerinden (datacenter) birini seçerek oluþturabilirsiniz. Burda dikkat edilmesi gereken, bazý datacenter bölgelerinin (region) neleri destekleyip desteklemediðidir.
+\end{enumerate}
+
+\textbf{Özellikler:}
+\begin{itemize}
+\item \textbf{Cluster Deployment: }Oluþturduðumuz her Droplet bir cluster (küme)üyesidir.
+\item \textbf{Resize: }Ýhtiyacýnýza baðlý olarak Droplet'lerimizin (Droplets) kaynaklarýný dikey olarak ölçeklendirin.
+\item \textbf{Yedekleme ve Görüntü Alma: }droplet oluþtruma sýrasýnda otomatik yedeklemeleri (backup) etkinleþtirim veya istediðiniz zaman anlýk görüntü (snapshot) alýn.
+\item \textbf{Ýzleme: }Droplet'lerimizin bant geniþliði, disk ve CpU seviyelerini yakýndan takip edin.
+\item \textbf{User Data: }Ýlk kurulum sýrasýnda paketlerin yüklenmesini otomatikleþtimek için özel komut dosyalarý ekleyin.
+\item \textbf{User Data: }Ýlk kurulum sýrasýnda paketlerin yüklenmesini otomatikleþtirmek için özel komut dosyalrý ekleyin.
+\item \textbf{40GbE: }40 Gigabit Ethernet (40GbE), Ethernet çerçevelerinin (frame) saniyede 40 gigabit'e (GbpS) kadar aktarýmýný saðlayan bir standarttýr. 40GbE standardý yerel sunucu baðlantýsý için tasarlanmýþtýr; Daha saðlam standart, 100 Gigabit Etherne (100GbE), Ýnternet omurgalarýna yöneliktir.
+\textbf{KVM: }Geliþmiþ að performansý ve güvenliði için kurumsal düzeyde KVM.
+\textbf{Droplet arasý haberleþme: }Dropletlerimiz birbiriyle private network olanaðý ile haberleþebilir.
+\end{itemize}
+
+\newpage
+\section{Web Sitesinin Görüntüleri}
+Bu bölümde yazýlan projenin front-end görünümü paylaþýlacak olup, giriþ sayfasý mesajlaþma sayfasý ve projeye doðrudan girmenizi saylayacak kare kodu paylaþýlacaktýr muhtemelen artýk o siteye eriþimizin olamayacaðýný da belirtmek isterim.
+\subsection{Giriþ Sayfasý}
+Projemize ait giriþ sayfasý Þekil \ref{fig: kullaniciSayfasi}'de göründüðü gibidir.
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.8\textwidth, keepaspectratio]{anasayfa.png}
+    \caption{\textit{Kullanýcý Giriþ Sayfasý}}
+    \label{fig: kullaniciSayfasi}
+\end{figure}
+
+
+\subsection{Mesajlaþma Sayfasý}
+Projeye ait mesajlaþma sayfasý Þekil \ref{fig: mesajlasma}'deki gibidir.
+\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.8\textwidth, keepaspectratio]{main.png}
+    \caption{\textit{Mesajlaþma Sayfasý}}
+    \label{fig: mesajlasma}
+\end{figure}
+
+\subsection{Sitemi denemek ister misiniz?}
+Eðer sitemi denemek isterseniz Þekil \ref{fig: kareKod}'deki kare kodu taratarak ilgili sayfaya gidebilirsiniz.
+ 	\begin{figure}[H] \centering
+    \includegraphics[height=6cm, width=0.8\textwidth, keepaspectratio]{qrcode.png}
+    \caption{\textit{Sayfayý açacak olan karekodu}}
+    \label{fig: kareKod}
+\end{figure}
+
+	
+	
+	
+%\section{Uygulama Aþamalarý ve Sistemin Geliþtirilmesi}

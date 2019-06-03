@@ -1,0 +1,17 @@
+{
+  "name": "chatsistemi",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Mustafa YILDIRIM <mustafa.yildirim1997@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "nodejs",
+    "chatApp"
+  ],
+  "homepage": "https://github.com/musttafayildirim/socketIo.chatApp",
+  "dependencies": {
+    "angular": "^1.7.7"
+  }
+}
